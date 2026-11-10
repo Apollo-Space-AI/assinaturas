@@ -20,10 +20,10 @@ button{font:inherit;font-size:14px;font-weight:500;border-radius:999px;padding:1
 <h1>Assinatura Oz</h1>
 <p>Preencha os dados, clique em Copiar e cole no Gmail. A foto e a faixa entram como link, então a assinatura fica curta.</p>
 <div class="g">
-<label>Nome<input id="nome" value="Nome Sobrenome"></label>
+<label>Nome<input id="nome" value="Marcelo Henrique"></label>
 <label>Cargo<input id="cargo" value="Cargo na Oz"></label>
 <label>Telefone<input id="tel" value="+55 11 90000-0000"></label>
-<label>Arquivo da foto (sem .png)<input id="foto" value="nome-sobrenome"></label>
+<label>Foto (primeiro nome)<input id="foto" placeholder="deixe vazio para usar o do nome"></label>
 </div>
 <div class="prev" id="prev"></div>
 <button id="cp">Copiar assinatura</button>
@@ -34,8 +34,9 @@ button{font:inherit;font-size:14px;font-weight:500;border-radius:999px;padding:1
 const BASE=(new URLSearchParams(location.search).get('base'))||'https://apollo-space-ai.github.io/assinaturas';
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const slug=s=>(s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().split(/\s+/)[0]||'').replace(/[^a-z0-9-]/g,'');
 function html(){
-  const f=($('foto').value.trim().toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,''))||'foto-oz';
+  const f=slug($('foto').value)||slug($('nome').value)||'foto-oz';
   return '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;border-collapse:collapse"><tr>'
   +'<td valign="middle" style="padding-right:6px"><img src="'+BASE+'/fotos/'+f+'.png" width="116" height="116" alt="" style="display:block;border:0"></td>'
   +'<td valign="middle"><div style="font-size:20px;line-height:24px;color:#111111">'+esc($('nome').value)+'</div>'
