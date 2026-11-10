@@ -39,7 +39,7 @@ const v=id=>$(id).value.trim()||$(id).placeholder;
 function html(){
   const f=slug($('nome').value)||'nome-sobrenome';
   return '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;border-collapse:collapse"><tr>'
-  +'<td valign="middle" style="padding-right:6px"><img src="'+BASE+'/fotos/'+f+'.png" width="116" height="116" alt="" style="display:block;border:0"></td>'
+  +'<td valign="middle" width="116" style="width:116px;padding-right:0"><img src="'+BASE+'/fotos/'+f+'.png" width="116" height="116" alt="" style="display:block;border:0"></td>'
   +'<td valign="middle"><div style="font-size:20px;line-height:24px;color:#111111">'+esc(v('nome'))+'</div>'
   +'<div style="font-size:14px;line-height:18px;color:#1f4541;padding-top:2px">'+esc(v('cargo'))+'</div>'
   +'<div style="font-size:13px;line-height:18px;color:#111111;padding-top:8px">'+'<a href="'+wa(v('tel'))+'" style="color:#1f4541;font-weight:bold;text-decoration:underline">'+esc(v('tel'))+'</a><span style="color:#8c8982">&nbsp;&nbsp;·&nbsp;&nbsp;</span><a href="https://ozagent.ai" style="color:#1f4541;font-weight:bold;text-decoration:underline">ozagent.ai</a></div></td></tr>'
@@ -49,8 +49,13 @@ function render(){const h=html();$('prev').innerHTML=h;$('meta').textContent=h.l
 const CARGOS={ian:'Co-founder',marcelo:'Co-founder',vinicius:'Co-founder',cleiton:'Platform Engineer',alessandro:'Software Engineer',aline:'Software Engineer',guilherme:'Software Engineer',nycolas:'Software Engineer'};
 let autoCargo='';
 $('nome').oninput=()=>{const c=CARGOS[slug($('nome').value)]||'';if(!$('cargo').value.trim()||$('cargo').value===autoCargo){$('cargo').value=c;autoCargo=c}render()};
-$('cargo').oninput=()=>render();$('tel').oninput=()=>render();
-function render2(){const ok=['nome','cargo','tel'].every(i=>$(i).value.trim());$('cp').disabled=!ok;if(!ok){$('ok').textContent='Preencha nome, cargo e telefone para copiar.'}else $('ok').textContent=''}
+$('cargo').oninput=()=>render();function mask(t){let d=t.replace(/\D/g,'');if(d.startsWith('55'))d=d.slice(2);d=d.slice(0,11);let r=d.slice(0,2);if(d.length>2){const n=d.slice(2);r+=' '+(n.length>5?n.slice(0,5)+'-'+n.slice(5):n)}return '+55 '+r}
+const tel=$('tel');
+tel.oninput=()=>{tel.value=mask(tel.value);render()};
+tel.onfocus=()=>{if(!tel.value)tel.value='+55 '};
+tel.onblur=()=>{if(tel.value.replace(/\D/g,'')==='55'){tel.value='';render()}};
+tel.onkeydown=e=>{if(e.key==='Backspace'&&tel.value.length<=4)e.preventDefault()};
+function render2(){const ok=$('nome').value.trim()&&$('cargo').value.trim()&&$('tel').value.replace(/\D/g,'').length>=12;$('cp').disabled=!ok;if(!ok){$('ok').textContent='Preencha nome, cargo e telefone completo para copiar.'}else $('ok').textContent=''}
 const _r=render;render=function(){_r();render2();const im=$('prev').querySelector('img');if(im&&$('nome').value.trim()){im.onerror=()=>{$('cp').disabled=true;$('ok').textContent='Não achei a foto de '+slug($('nome').value)+'. Confira o nome ou peça para subir a foto.'}}};
 render();
 $('cp').onclick=async()=>{
