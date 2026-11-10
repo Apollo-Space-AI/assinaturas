@@ -9,9 +9,9 @@ h1{font-size:26px;font-weight:500;letter-spacing:-.03em;margin:0}
 p{margin:0;color:var(--apoio);font-size:14px;line-height:1.5}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--apoio)}
 input{font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--fio);border-radius:10px;color:#111}
-.g{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:520px){.g{grid-template-columns:1fr}}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
 .prev{border:1px dashed #b9d2b0;background:#fff;border-radius:14px;padding:22px;overflow-x:auto}
+button:disabled{opacity:.4;cursor:not-allowed}
 button{font:inherit;font-size:14px;font-weight:500;border-radius:999px;padding:11px 20px;border:1px solid var(--pet);background:var(--pet);color:#fff;cursor:pointer;align-self:flex-start}
 .ok{color:var(--pet);font-size:13px;min-height:18px}
 .meta{font-size:12px;color:var(--apoio)}
@@ -20,10 +20,9 @@ button{font:inherit;font-size:14px;font-weight:500;border-radius:999px;padding:1
 <h1>Assinatura Oz</h1>
 <p>Preencha os dados, clique em Copiar e cole no Gmail. A foto e a faixa entram como link, então a assinatura fica curta.</p>
 <div class="g">
-<label>Nome<input id="nome" value="Marcelo Henrique"></label>
-<label>Cargo<input id="cargo" value="Cargo na Oz"></label>
-<label>Telefone<input id="tel" value="+55 11 90000-0000"></label>
-<label>Foto (primeiro nome)<input id="foto" placeholder="deixe vazio para usar o do nome"></label>
+<label>Nome<input id="nome" placeholder="Nome Sobrenome" autocomplete="off"></label>
+<label>Cargo<input id="cargo" placeholder="Cargo na Oz" autocomplete="off"></label>
+<label>Telefone<input id="tel" placeholder="+55 11 90000-0000" autocomplete="off"></label>
 </div>
 <div class="prev" id="prev"></div>
 <button id="cp">Copiar assinatura</button>
@@ -36,17 +35,21 @@ const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const slug=s=>(s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().split(/\s+/)[0]||'').replace(/[^a-z0-9-]/g,'');
 function wa(t){let d=t.replace(/\D/g,'');if(!t.trim().startsWith('+')&&(d.length===10||d.length===11))d='55'+d;return 'https://wa.me/'+d}
+const v=id=>$(id).value.trim()||$(id).placeholder;
 function html(){
-  const f=slug($('foto').value)||slug($('nome').value)||'foto-oz';
+  const f=slug($('nome').value)||'nome-sobrenome';
   return '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;border-collapse:collapse"><tr>'
   +'<td valign="middle" style="padding-right:6px"><img src="'+BASE+'/fotos/'+f+'.png" width="116" height="116" alt="" style="display:block;border:0"></td>'
-  +'<td valign="middle"><div style="font-size:20px;line-height:24px;color:#111111">'+esc($('nome').value)+'</div>'
-  +'<div style="font-size:14px;line-height:18px;color:#1f4541;padding-top:2px">'+esc($('cargo').value)+'</div>'
-  +'<div style="font-size:13px;line-height:18px;color:#111111;padding-top:8px">'+'<a href="'+wa($('tel').value)+'" style="color:#1f4541;font-weight:bold;text-decoration:underline">'+esc($('tel').value)+'</a><span style="color:#8c8982">&nbsp;&nbsp;·&nbsp;&nbsp;</span><a href="https://ozagent.ai" style="color:#1f4541;font-weight:bold;text-decoration:underline">ozagent.ai</a></div></td></tr>'
+  +'<td valign="middle"><div style="font-size:20px;line-height:24px;color:#111111">'+esc(v('nome'))+'</div>'
+  +'<div style="font-size:14px;line-height:18px;color:#1f4541;padding-top:2px">'+esc(v('cargo'))+'</div>'
+  +'<div style="font-size:13px;line-height:18px;color:#111111;padding-top:8px">'+'<a href="'+wa(v('tel'))+'" style="color:#1f4541;font-weight:bold;text-decoration:underline">'+esc(v('tel'))+'</a><span style="color:#8c8982">&nbsp;&nbsp;·&nbsp;&nbsp;</span><a href="https://ozagent.ai" style="color:#1f4541;font-weight:bold;text-decoration:underline">ozagent.ai</a></div></td></tr>'
   +'<tr><td colspan="2" style="padding-top:10px"><img src="'+BASE+'/faixa.png" width="480" alt="Oz. A receita é sua. O cuidado é nosso." style="display:block;border:0;border-radius:10px"></td></tr></table>';
 }
 function render(){const h=html();$('prev').innerHTML=h;$('meta').textContent=h.length+' caracteres (o limite do Gmail é 10.000)'}
-['nome','cargo','tel','foto'].forEach(i=>$(i).oninput=render);render();
+['nome','cargo','tel'].forEach(i=>$(i).oninput=()=>render());
+function render2(){const ok=['nome','cargo','tel'].every(i=>$(i).value.trim());$('cp').disabled=!ok;if(!ok){$('ok').textContent='Preencha nome, cargo e telefone para copiar.'}else $('ok').textContent=''}
+const _r=render;render=function(){_r();render2();const im=$('prev').querySelector('img');if(im&&$('nome').value.trim()){im.onerror=()=>{$('cp').disabled=true;$('ok').textContent='Não achei a foto de '+slug($('nome').value)+'. Confira o nome ou peça para subir a foto.'}}};
+render();
 $('cp').onclick=async()=>{
   const h=html(),t=$('nome').value+'\n'+$('cargo').value+'\n'+$('tel').value+'  ·  ozagent.ai';
   try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([h],{type:'text/html'}),'text/plain':new Blob([t],{type:'text/plain'})})]);$('ok').textContent='Copiado. Agora cole no Gmail.'}
