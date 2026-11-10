@@ -46,7 +46,10 @@ function html(){
   +'<tr><td colspan="2" style="padding-top:10px"><img src="'+BASE+'/faixa.png" width="480" alt="Oz. A receita é sua. O cuidado é nosso." style="display:block;border:0;border-radius:10px"></td></tr></table>';
 }
 function render(){const h=html();$('prev').innerHTML=h;$('meta').textContent=h.length+' caracteres (o limite do Gmail é 10.000)'}
-['nome','cargo','tel'].forEach(i=>$(i).oninput=()=>render());
+const CARGOS={ian:'Co-founder',marcelo:'Co-founder',vinicius:'Co-founder',cleiton:'Platform Engineer',alessandro:'Software Engineer',aline:'Software Engineer',guilherme:'Software Engineer',nycolas:'Software Engineer'};
+let autoCargo='';
+$('nome').oninput=()=>{const c=CARGOS[slug($('nome').value)]||'';if(!$('cargo').value.trim()||$('cargo').value===autoCargo){$('cargo').value=c;autoCargo=c}render()};
+$('cargo').oninput=()=>render();$('tel').oninput=()=>render();
 function render2(){const ok=['nome','cargo','tel'].every(i=>$(i).value.trim());$('cp').disabled=!ok;if(!ok){$('ok').textContent='Preencha nome, cargo e telefone para copiar.'}else $('ok').textContent=''}
 const _r=render;render=function(){_r();render2();const im=$('prev').querySelector('img');if(im&&$('nome').value.trim()){im.onerror=()=>{$('cp').disabled=true;$('ok').textContent='Não achei a foto de '+slug($('nome').value)+'. Confira o nome ou peça para subir a foto.'}}};
 render();
