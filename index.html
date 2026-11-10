@@ -1,0 +1,53 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assinatura Oz</title>
+<style>
+:root{--pet:#1f4541;--apoio:#5a564e;--fio:#e2dfd9;--folha:#e3ebdf}
+*{box-sizing:border-box}
+body{margin:0;font-family:Helvetica Neue,Arial,sans-serif;color:#111;padding:28px 16px;display:grid;place-items:start center}
+main{width:min(620px,100%);display:flex;flex-direction:column;gap:16px}
+h1{font-size:26px;font-weight:500;letter-spacing:-.03em;margin:0}
+p{margin:0;color:var(--apoio);font-size:14px;line-height:1.5}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--apoio)}
+input{font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--fio);border-radius:10px;color:#111}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.g{grid-template-columns:1fr}}
+.prev{border:1px dashed #b9d2b0;background:#fff;border-radius:14px;padding:22px;overflow-x:auto}
+button{font:inherit;font-size:14px;font-weight:500;border-radius:999px;padding:11px 20px;border:1px solid var(--pet);background:var(--pet);color:#fff;cursor:pointer;align-self:flex-start}
+.ok{color:var(--pet);font-size:13px;min-height:18px}
+.meta{font-size:12px;color:var(--apoio)}
+</style>
+<main>
+<h1>Assinatura Oz</h1>
+<p>Preencha os dados, clique em Copiar e cole no Gmail. A foto e a faixa entram como link, então a assinatura fica curta.</p>
+<div class="g">
+<label>Nome<input id="nome" value="Nome Sobrenome"></label>
+<label>Cargo<input id="cargo" value="Cargo na Oz"></label>
+<label>Telefone<input id="tel" value="+55 11 90000-0000"></label>
+<label>Arquivo da foto (sem .png)<input id="foto" value="nome-sobrenome"></label>
+</div>
+<div class="prev" id="prev"></div>
+<button id="cp">Copiar assinatura</button>
+<div class="ok" id="ok"></div>
+<div class="meta" id="meta"></div>
+</main>
+<script>
+const BASE=(new URLSearchParams(location.search).get('base'))||'https://apollo-space-ai.github.io/assinaturas';
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function html(){
+  const f=($('foto').value.trim().toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,''))||'foto-oz';
+  return '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;border-collapse:collapse"><tr>'
+  +'<td valign="middle" style="padding-right:6px"><img src="'+BASE+'/fotos/'+f+'.png" width="116" height="116" alt="" style="display:block;border:0"></td>'
+  +'<td valign="middle"><div style="font-size:20px;line-height:24px;color:#111111">'+esc($('nome').value)+'</div>'
+  +'<div style="font-size:14px;line-height:18px;color:#1f4541;padding-top:2px">'+esc($('cargo').value)+'</div>'
+  +'<div style="font-size:13px;line-height:18px;color:#111111;padding-top:8px">'+esc($('tel').value)+'<span style="color:#8c8982">&nbsp;&nbsp;·&nbsp;&nbsp;</span><a href="https://ozagent.ai" style="color:#1f4541;font-weight:bold;text-decoration:underline">ozagent.ai</a></div></td></tr>'
+  +'<tr><td colspan="2" style="padding-top:10px"><img src="'+BASE+'/faixa.png" width="480" alt="Oz. A receita é sua. O cuidado é nosso." style="display:block;border:0;border-radius:10px"></td></tr></table>';
+}
+function render(){const h=html();$('prev').innerHTML=h;$('meta').textContent=h.length+' caracteres (o limite do Gmail é 10.000)'}
+['nome','cargo','tel','foto'].forEach(i=>$(i).oninput=render);render();
+$('cp').onclick=async()=>{
+  const h=html(),t=$('nome').value+'\n'+$('cargo').value+'\n'+$('tel').value+'  ·  ozagent.ai';
+  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([h],{type:'text/html'}),'text/plain':new Blob([t],{type:'text/plain'})})]);$('ok').textContent='Copiado. Agora cole no Gmail.'}
+  catch(e){const r=document.createRange();r.selectNodeContents($('prev'));const s=getSelection();s.removeAllRanges();s.addRange(r);const okc=document.execCommand('copy');s.removeAllRanges();$('ok').textContent=okc?'Copiado. Agora cole no Gmail.':'Não consegui copiar. Selecione a prévia e copie com Ctrl+C.'}
+};
+</script></html>
